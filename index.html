@@ -15,7 +15,7 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
     .card:hover { box-shadow: 0 10px 28px rgba(15, 23, 42, .12); transform: translateY(-2px); }
-    .card img { width: 100%; display: block; border-bottom: 1px solid #e2e8f0; }
+    .card img { width: 100%; height: auto; display: block; border-bottom: 1px solid #e2e8f0; background: #0f172a; min-height: 220px; object-fit: cover; }
     .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
     .tag { font-size: 12px; font-weight: 700; color: #005691; }
     .body h2 { font-size: 17px; color: #0f172a; }
@@ -30,13 +30,13 @@
   <div class="wrap">
     <div class="head">
       <div class="who">SK AIGEN 1기 지원자 이상승 · 포트폴리오 실행 데모</div>
-      <h1>직접 만든 업무 자동화 프로그램 2개</h1>
-      <p>포트폴리오 PDF에 넣은 화면과 같은 프로그램입니다. 설치나 로그인 없이 바로 눌러볼 수 있습니다.</p>
+      <h1>AI 에이전트(Antigravity)와 함께 만든 업무 자동화 프로그램 2개</h1>
+      <p>비개발자 실무자가 AI 코딩 도구(Google Antigravity)를 활용해 현장 병목을 해결한 프로토타입입니다. 포트폴리오 PDF에 실린 화면과 동일하며, 설치나 로그인 없이 바로 눌러볼 수 있습니다.</p>
     </div>
 
     <div class="grid">
       <a class="card" href="./trade/">
-        <img src="./trade.png" alt="TradeReconcile AI 화면" />
+        <img src="trade.png?v=3" onerror="this.onerror=null; this.src='trade.png';" alt="TradeReconcile AI 화면" loading="eager" decoding="async" />
         <div class="body">
           <div class="tag">PROJECT 01</div>
           <h2>무역 서류(PO·CI·PL·BL) 4자 대조 프로그램</h2>
@@ -47,7 +47,7 @@
       </a>
 
       <a class="card" href="./email-briefing/">
-        <img src="./email.png" alt="EmailBriefing AI 화면" />
+        <img src="email.png?v=3" onerror="this.onerror=null; this.src='email.png';" alt="EmailBriefing AI 화면" loading="eager" decoding="async" />
         <div class="body">
           <div class="tag">PROJECT 02</div>
           <h2>업무 메일 분류·요약 프로그램</h2>
@@ -58,7 +58,7 @@
       </a>
     </div>
 
-    <p class="note">※ 두 프로그램 모두 개인정보 보호를 위해 직접 만든 가상 데이터로 돌아갑니다. 실제 버전은 FastAPI 백엔드와 Gmail API에 연결해 씁니다.</p>
+    <p class="note">※ 두 프로그램 모두 개인정보 보호를 위해 직접 설계한 가상 데이터로 돌아갑니다. 실제 버전은 FastAPI 백엔드와 Gmail API에 연결해 씁니다.</p>
   </div>
 </body>
 </html>
