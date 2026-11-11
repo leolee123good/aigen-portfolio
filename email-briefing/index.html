@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⚡ Executive AI Agent Inbox — Portfolio Demo</title>
+    <style>
+        :root {
+            --bg-app: #090d16;
+            --bg-sidebar: #0f172a;
+            --bg-list: #111827;
+            --bg-detail: #0b1120;
+            --bg-card: #1e293b;
+            --border: #1e293b;
+            --border-light: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --must: #ef4444;
+            --must-soft: rgba(239, 68, 68, 0.14);
+            --good: #f59e0b;
+            --good-soft: rgba(245, 158, 11, 0.14);
+            --skip: #64748b;
+            --skip-soft: rgba(100, 116, 139, 0.16);
+            --success: #10b981;
+            --purple: #8b5cf6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-app);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .top-bar {
+            height: 56px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-logo {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.95rem;
+        }
+        .brand-title { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em; }
+        .brand-sub {
+            font-size: 0.78rem; color: var(--text-secondary);
+            padding: 3px 9px; background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 999px;
+        }
+        .search-wrap { flex: 1; max-width: 380px; margin: 0 16px; position: relative; }
+        .search-input {
+            width: 100%; background: #090d16; border: 1px solid var(--border-light);
+            color: var(--text-primary); padding: 7px 14px 7px 34px; border-radius: 8px;
+            font-size: 0.86rem; outline: none;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; }
+        .top-meta { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: var(--text-secondary); }
+        .kbd-hint {
+            background: #1e293b; border: 1px solid #334155; border-radius: 5px;
+            padding: 2px 6px; font-size: 0.75rem; font-family: Consolas, monospace; color: #cbd5e1;
+        }
+        .btn-refresh {
+            background: #2563eb; color: #fff; border: none; border-radius: 7px;
+            padding: 6px 13px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease;
+        }
+        .btn-refresh:hover { background: #1d4ed8; }
+        .btn-refresh:disabled { opacity: 0.6; cursor: not-allowed; }
+        .workspace { flex: 1; display: grid; grid-template-columns: 240px 390px 1fr; overflow: hidden; }
+        .sidebar {
+            background: var(--bg-sidebar); border-right: 1px solid var(--border-light);
+            padding: 18px 12px; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto;
+        }
+        .nav-group-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 0 10px; margin-bottom: 8px; }
+        .nav-btn {
+            width: 100%; background: transparent; border: 1px solid transparent; color: var(--text-secondary);
+            padding: 10px 12px; border-radius: 9px; display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-bottom: 5px; transition: all 0.15s ease; text-align: left;
+        }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-primary); }
+        .nav-btn.active { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); color: #ffffff; }
+        .nav-count { font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #1e293b; color: #cbd5e1; }
+        .nav-btn.active .nav-count { background: var(--accent); color: #fff; }
+        .progress-box { background: #111827; border: 1px solid var(--border-light); border-radius: 10px; padding: 14px; margin-top: 16px; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px; color: #cbd5e1; font-weight: 600; }
+        .progress-track { width: 100%; height: 7px; background: #1e293b; border-radius: 999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); width: 0%; transition: width 0.25s ease; }
+        .shortcut-card { background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; border-radius: 10px; padding: 12px; font-size: 0.78rem; color: var(--text-secondary); }
+        .shortcut-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .shortcut-row:last-child { margin-bottom: 0; }
+        .queue-pane { background: var(--bg-list); border-right: 1px solid var(--border-light); display: flex; flex-direction: column; overflow: hidden; }
+        .queue-header { padding: 13px 16px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700; color: #cbd5e1; }
+        .queue-list { flex: 1; overflow-y: auto; }
+        .queue-item { padding: 14px 16px; border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.12s ease; position: relative; }
+        .queue-item:hover { background: rgba(255, 255, 255, 0.03); }
+        .queue-item.selected { background: rgba(59, 130, 246, 0.14); border-left: 4px solid var(--accent); }
+        .queue-item.resolved { opacity: 0.48; }
+        .q-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 5px; }
+        .q-badges { display: flex; align-items: center; gap: 6px; }
+        .triage-chip { font-size: 0.68rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .chip-MUST_READ { background: var(--must-soft); color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
+        .chip-GOOD_TO_READ { background: var(--good-soft); color: #fde68a; border: 1px solid rgba(245,158,11,0.35); }
+        .chip-SKIP { background: var(--skip-soft); color: #cbd5e1; }
+        .sub-chip { font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #1e293b; color: #93c5fd; }
+        .resolved-badge { font-size: 0.68rem; font-weight: 700; color: #6ee7b7; background: rgba(16, 185, 129, 0.15); padding: 2px 6px; border-radius: 4px; }
+        .q-sender { font-size: 0.86rem; font-weight: 700; color: #f1f5f9; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .q-subject { font-size: 0.84rem; font-weight: 600; color: #cbd5e1; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .q-summary { font-size: 0.78rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; }
+        .detail-pane { background: var(--bg-detail); display: flex; flex-direction: column; overflow-y: auto; padding: 24px 28px 40px; }
+        .detail-header { border-bottom: 1px solid var(--border-light); padding-bottom: 18px; margin-bottom: 20px; }
+        .detail-ActionBar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .decision-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { border: 1px solid transparent; border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; }
+        .btn-approve { background: var(--success); color: #052e16; }
+        .btn-approve:hover { filter: brightness(1.08); }
+        .btn-gmail { background: var(--accent); color: #ffffff; }
+        .btn-gmail:hover { background: var(--accent-hover); }
+        .btn-secondary { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+        .btn-secondary:hover { background: #334155; }
+        .detail-subject { font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; line-height: 1.35; }
+        .detail-meta { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); }
+        .ai-brief-card { background: linear-gradient(145deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9)); border: 1px solid #334155; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
+        .ai-brief-title { font-size: 0.85rem; font-weight: 800; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .ai-summary-text { font-size: 0.96rem; line-height: 1.65; color: #f1f5f9; margin-bottom: 12px; }
+        .key-points-list { margin: 10px 0 12px 18px; color: #cbd5e1; font-size: 0.88rem; }
+        .key-points-list li { margin-bottom: 4px; }
+        .action-callout { background: rgba(245, 158, 11, 0.13); border-left: 3px solid #f59e0b; padding: 9px 12px; border-radius: 6px; font-size: 0.86rem; color: #fde68a; font-weight: 600; }
+        .tab-bar { display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
+        .tab-btn { background: #111827; border: 1px solid #334155; color: var(--text-secondary); padding: 6px 13px; border-radius: 7px; font-size: 0.81rem; font-weight: 700; cursor: pointer; }
+        .tab-btn.active { background: #1e293b; color: #ffffff; border-color: var(--accent); }
+        .hitl-studio { background: #0f172a; border: 1px solid #1e3a8a; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
+        .studio-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .studio-label { font-size: 0.9rem; font-weight: 800; color: #93c5fd; }
+        .tone-pills { display: flex; gap: 6px; }
+        .tone-pill { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 5px 11px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; cursor: pointer; }
+        .tone-pill.active { background: var(--purple); border-color: #a78bfa; color: #ffffff; }
+        .draft-editor { width: 100%; min-height: 150px; background: #090d16; color: #f8fafc; border: 1px solid #334155; border-radius: 9px; padding: 14px; font-family: inherit; font-size: 0.92rem; line-height: 1.6; resize: vertical; margin-bottom: 12px; }
+        .studio-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .original-box { background: #090d16; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; font-size: 0.86rem; line-height: 1.65; color: #cbd5e1; white-space: pre-wrap; max-height: 360px; overflow-y: auto; }
+        .links-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .ext-link { background: #1e293b; border: 1px solid #334155; color: #60a5fa; text-decoration: none; padding: 5px 11px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+        .ext-link:hover { background: #334155; }
+        .toast { position: fixed; bottom: 22px; right: 24px; background: #10b981; color: #052e16; padding: 11px 18px; border-radius: 9px; font-weight: 800; font-size: 0.86rem; box-shadow: 0 10px 25px rgba(0,0,0,0.45); display: none; z-index: 999; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="brand">
+            <div class="brand-logo">⚡</div>
+            <span class="brand-title">Executive AI Agent Inbox</span>
+            <span class="brand-sub">LangChain HITL Architecture · 가상 업무 메일 데모</span>
+        </div>
+        <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="보낸사람, 제목, 요약 키워드 검색 ( / 키 )" oninput="handleSearch(this.value)" />
+        </div>
+        <div class="top-meta">
+            <span>가상 데이터 · 개인정보 없음</span>
+            <button class="btn-refresh" id="briefingBtn" onclick="toggleBriefingModal()" style="background:#059669;">
+                📋 아침 10줄 브리핑 (B)
+            </button>
+            <button class="btn-refresh" id="refreshBtn" onclick="triggerLiveRefresh(this)">
+                🔄 지메일 실시간 새로고침
+            </button>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <aside class="sidebar">
+            <div>
+                <div class="nav-group-label">Triage Queues (트리아지 큐)</div>
+                <button class="nav-btn active" id="nav-MUST_READ" onclick="setFilter('MUST_READ')">
+                    <span>🔴 필독 · 결재 큐</span>
+                    <span class="nav-count" id="cnt-MUST_READ">0</span>
+                </button>
+                <button class="nav-btn" id="nav-GOOD_TO_READ" onclick="setFilter('GOOD_TO_READ')">
+                    <span>🟡 참고 · 인사이트</span>
+                    <span class="nav-count" id="cnt-GOOD_TO_READ">0</span>
+                </button>
+                <button class="nav-btn" id="nav-SKIP" onclick="setFilter('SKIP')">
+                    <span>⚪ 패스 · 프로모션</span>
+                    <span class="nav-count" id="cnt-SKIP">0</span>
+                </button>
+                <button class="nav-btn" id="nav-ALL" onclick="setFilter('ALL')">
+                    <span>📬 전체 수신함</span>
+                    <span class="nav-count" id="cnt-ALL">0</span>
+                </button>
+                <button class="nav-btn" id="nav-RESOLVED" onclick="setFilter('RESOLVED')">
+                    <span>✅ 결재/검토 완료됨</span>
+                    <span class="nav-count" id="cnt-RESOLVED">0</span>
+                </button>
+
+                <div class="progress-box">
+                    <div class="progress-header">
+                        <span>오늘의 Inbox Zero 달성률</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="font-weight:700; color:#e2e8f0; margin-bottom:6px;">⌨️ 빠른 결재 단축키</div>
+                <div class="shortcut-row"><span>다음 / 이전 메일</span><span><kbd class="kbd-hint">J</kbd> / <kbd class="kbd-hint">K</kbd></span></div>
+                <div class="shortcut-row"><span>현재 건 결재 완료(Done)</span><span><kbd class="kbd-hint">E</kbd></span></div>
+                <div class="shortcut-row"><span>지메일 답장창 열기</span><span><kbd class="kbd-hint">R</kbd></span></div>
+                <div class="shortcut-row"><span>초안 클립보드 복사</span><span><kbd class="kbd-hint">C</kbd></span></div>
+            </div>
+        </aside>
+
+        <section class="queue-pane">
+            <div class="queue-header">
+                <span id="queueTitle">🔴 필독 · 결재 대기 큐</span>
+                <button class="btn btn-secondary" style="padding:4px 9px; font-size:0.74rem;" onclick="markAllVisibleResolved()">현재 목록 일괄 완료</button>
+            </div>
+            <div class="queue-list" id="queueList"></div>
+        </section>
+
+        <main class="detail-pane" id="detailPane"></main>
+    </div>
+
+    <div class="toast" id="toastBox"></div>
+
+    <script>
+        const EMAILS = [{"id": "D01", "sender_name": "Ocean Line Korea 운영팀", "sender_email": "ops@oceanline-demo.com", "subject": "[긴급] HMM 2611W 항차 부산 입항 5일 지연 안내 (컨테이너 4대)", "date": "Wed, 11 Nov 2026 08:12:00 +0900", "message_id": "<demo-D01@example.com>", "snippet": "안녕하십니까, Ocean Line Korea 운영팀입니다.\n\n롱비치 터미널 혼잡으로 HMM 2611W 항차의 부산 입항 예정일이 11월 16일에서 11월 21일로 변경되었습니다.\n해당 항차에는 귀사 컨테이너 4대(TGHU1234561 외 3대)가 선적되어 있습니다.\n\n대체 항차(11/1", "full_body": "안녕하십니까, Ocean Line Korea 운영팀입니다.\n\n롱비치 터미널 혼잡으로 HMM 2611W 항차의 부산 입항 예정일이 11월 16일에서 11월 21일로 변경되었습니다.\n해당 항차에는 귀사 컨테이너 4대(TGHU1234561 외 3대)가 선적되어 있습니다.\n\n대체 항차(11/19 도착)로 전환을 원하시면 대당 USD 850의 추가 운임이 발생하며, 금일 15시까지 회신 주셔야 배정이 가능합니다.\n\n감사합니다.", "links": [], "category": "MUST_READ", "triage_type": "REPLY", "priority_score": 96, "reason": "납기 직결 선적 지연 통보, 오늘 안에 대체 운송 여부 결정 필요", "summary": "롱비치 터미널 혼잡으로 11/16 예정이던 부산 입항이 11/21로 5일 밀렸습니다. 컨테이너 4대 중 2대가 생산 투입 자재입니다.", "key_points": ["입항 예정일 11/16 → 11/21 (5일 지연)", "영향 컨테이너 4대 중 생산 투입분 2대", "선사 대체 항차는 11/19 도착, 추가 운임 USD 850/대"], "action_required": "오늘 15시까지 대체 항차 전환 여부를 회신하고 생산관리팀에 공유", "calendar_conflict": "11/16(월) 10:00 '자재 입고 검수' 일정과 겹침 → 일정 조정 필요", "reply_subject": "", "draft_polite": "안녕하세요, 입항 지연 안내 확인했습니다.\n\n생산 투입 자재가 실린 2대(TGHU1234561, TGHU1234578)는 대체 항차(11/19 도착)로 전환 부탁드립니다. 나머지 2대는 기존 항차 그대로 진행해 주세요.\n\n추가 운임 USD 1,700(2대) 청구서와 변경된 B/L 사본을 함께 보내주시면 바로 처리하겠습니다.\n\n감사합니다.", "draft_concise": "지연 안내 확인했습니다.\n생산 투입분 2대만 11/19 대체 항차로 바꿔 주세요.\n나머지 2대는 기존 일정 유지합니다.\n추가 운임 청구서와 변경 B/L 부탁드립니다.", "draft_schedule": "안녕하세요, 대체 항차 관련해 짧게 통화 가능할지 여쭙니다.\n\n- 11/11(수) 13:00~13:30\n- 11/11(수) 14:00~14:30\n\n편하신 시간 알려주시면 맞춰 연락드리겠습니다.", "draft_internal": "", "is_forwarded": false, "reply_to_email": "ops@oceanline-demo.com", "reply_to_name": "Ocean Line Korea 운영팀", "forwarder_email": "ops@oceanline-demo.com", "forwarder_name": "Ocean Line Korea 운영팀", "reply_draft": "안녕하세요, 입항 지연 안내 확인했습니다.\n\n생산 투입 자재가 실린 2대(TGHU1234561, TGHU1234578)는 대체 항차(11/19 도착)로 전환 부탁드립니다. 나머지 2대는 기존 항차 그대로 진행해 주세요.\n\n추가 운임 USD 1,700(2대) 청구서와 변경된 B/L 사본을 함께 보내주시면 바로 처리하겠습니다.\n\n감사합니다."}, {"id": "D02", "sender_name": "재무팀 김지현 과장", "sender_email": "finance@company-demo.co.kr", "subject": "[결재요청] 11월 1차 수입대금 해외송금 품의 (USD 15,000)", "date": "Wed, 11 Nov 2026 09:05:00 +0900", "message_id": "<demo-D02@example.com>", "snippet": "과장님, 11월 1차 수입대금 송금 품의 올립니다.\n\n- 수취인: PT Indo Apparel Manufacturing\n- 금액: USD 15,000.00\n- 근거 서류: PO-2026-001 / INV-2026-001 / PL-2026-001 / BL-2026-001\n\n4개 서류 대조", "full_body": "과장님, 11월 1차 수입대금 송금 품의 올립니다.\n\n- 수취인: PT Indo Apparel Manufacturing\n- 금액: USD 15,000.00\n- 근거 서류: PO-2026-001 / INV-2026-001 / PL-2026-001 / BL-2026-001\n\n4개 서류 대조 결과 수량·단가·금액 모두 일치합니다. 오늘 17시 전에 결재해 주시면 내일 오전 송금 진행하겠습니다.", "links": [], "category": "MUST_READ", "triage_type": "APPROVE", "priority_score": 88, "reason": "오늘 17시 마감 결재 건", "summary": "PT Indo Apparel 앞 11월 1차 수입대금 USD 15,000 송금 품의입니다. 4개 서류(PO·CI·PL·BL) 대조는 이상 없음으로 첨부되어 있습니다.", "key_points": ["송금액 USD 15,000 (T/T 60일 조건)", "PO·CI·PL·BL 4개 서류 대조 결과 불일치 없음", "오늘 17시 전 결재 시 내일 오전 송금"], "action_required": "서류 대조 결과 확인 후 오늘 17시 전 결재", "calendar_conflict": "", "reply_subject": "", "draft_polite": "김지현 과장님, 품의 확인했습니다.\n\n첨부해 주신 4개 서류 대조 결과와 금액 모두 확인했고, 결재 완료했습니다. 내일 오전 송금 진행 부탁드립니다.\n\n감사합니다.", "draft_concise": "품의 확인했습니다.\n서류 대조 결과와 금액 이상 없습니다.\n결재 완료했으니 내일 송금 부탁드립니다.\n감사합니다.", "draft_schedule": "", "draft_internal": "", "is_forwarded": false, "reply_to_email": "finance@company-demo.co.kr", "reply_to_name": "재무팀 김지현 과장", "forwarder_email": "finance@company-demo.co.kr", "forwarder_name": "재무팀 김지현 과장", "reply_draft": "김지현 과장님, 품의 확인했습니다.\n\n첨부해 주신 4개 서류 대조 결과와 금액 모두 확인했고, 결재 완료했습니다. 내일 오전 송금 진행 부탁드립니다.\n\n감사합니다."}, {"id": "D03", "sender_name": "PT Sinar Logistics", "sender_email": "export@sinar-demo.co.id", "subject": "Re: CI 단가 정정 요청 건 (INV-2026-003)", "date": "Tue, 10 Nov 2026 18:40:00 +0700", "message_id": "<demo-D03@example.com>", "snippet": "Dear Sir,\n\nPlease find attached the revised Commercial Invoice INV-2026-003-R1.\nThe unit price has been corrected from USD 17.50 to USD 15.00 per the purchase o", "full_body": "Dear Sir,\n\nPlease find attached the revised Commercial Invoice INV-2026-003-R1.\nThe unit price has been corrected from USD 17.50 to USD 15.00 per the purchase order.\nPlease discard the previous version.\n\nBest regards,\nPT Sinar Logistics", "links": [], "category": "MUST_READ", "triage_type": "REPLY", "priority_score": 82, "reason": "공급사가 단가 정정 회신, 수정 서류 재대조 후 답장 필요", "summary": "공급사가 상업송장 단가를 USD 17.50에서 계약 단가 USD 15.00으로 고친 수정본을 보냈습니다. 수정 송장 재대조가 필요합니다.", "key_points": ["수정 전 단가 USD 17.50 → 수정 후 USD 15.00", "총액 차이 USD 3,750 해소", "수정 CI 첨부, 원본 폐기 요청"], "action_required": "수정된 송장을 다시 대조하고 결과를 회신", "calendar_conflict": "", "reply_subject": "", "draft_polite": "Dear Sinar team,\n\nThank you for the revised invoice INV-2026-003-R1.\nWe have re-checked it against PO-2026-003, PL and B/L, and the unit price and total amount now match.\nWe will proceed with the payment process.\n\nBest regards,", "draft_concise": "Thanks for the revised invoice.\nRe-checked against PO, PL and B/L: all matched.\nWe will proceed with payment.\nBest regards,", "draft_schedule": "", "draft_internal": "", "is_forwarded": false, "reply_to_email": "export@sinar-demo.co.id", "reply_to_name": "PT Sinar Logistics", "forwarder_email": "export@sinar-demo.co.id", "forwarder_name": "PT Sinar Logistics", "reply_draft": "Dear Sinar team,\n\nThank you for the revised invoice INV-2026-003-R1.\nWe have re-checked it against PO-2026-003, PL and B/L, and the unit price and total amount now match.\nWe will proceed with the payment process.\n\nBest regards,"}, {"id": "D04", "sender_name": "관세사무소 박준호 관세사", "sender_email": "customs@customs-demo.co.kr", "subject": "[안내] 11월부터 원산지 증명서 전자 제출 의무화", "date": "Tue, 10 Nov 2026 16:20:00 +0900", "message_id": "<demo-D04@example.com>", "snippet": "안녕하세요, 박준호 관세사입니다.\n\n11월 15일 선적분부터 한-아세안 FTA 원산지 증명서는 전자 방식(e-CO)으로만 접수됩니다.\n종이 원본은 더 이상 받지 않으니, 거래 공급사에 미리 안내 부탁드립니다.\n\n감사합니다.", "full_body": "안녕하세요, 박준호 관세사입니다.\n\n11월 15일 선적분부터 한-아세안 FTA 원산지 증명서는 전자 방식(e-CO)으로만 접수됩니다.\n종이 원본은 더 이상 받지 않으니, 거래 공급사에 미리 안내 부탁드립니다.\n\n감사합니다.", "links": [], "category": "GOOD_TO_READ", "triage_type": "READ", "priority_score": 64, "reason": "업무 절차 변경 안내, 이번 주 안에 확인", "summary": "11/15부터 한-아세안 FTA 원산지 증명서를 전자로만 받습니다. 종이 원본 대신 PDF 제출로 바뀝니다.", "key_points": ["11/15 선적분부터 적용", "종이 원본 대신 전자 원산지증명서(e-CO) 제출", "공급사에 미리 안내 필요"], "action_required": "인도네시아 공급사 2곳에 e-CO 발급 요청 공지", "calendar_conflict": "", "reply_subject": "", "draft_polite": "", "draft_concise": "", "draft_schedule": "", "draft_internal": "", "is_forwarded": false, "reply_to_email": "customs@customs-demo.co.kr", "reply_to_name": "관세사무소 박준호 관세사", "forwarder_email": "customs@customs-demo.co.kr", "forwarder_name": "관세사무소 박준호 관세사", "reply_draft": ""}, {"id": "D05", "sender_name": "생산관리팀 이수민 대리", "sender_email": "ppic@company-demo.co.kr", "subject": "[공유] 다음 주 라인별 자재 소요 계획 (W47)", "date": "Tue, 10 Nov 2026 14:02:00 +0900", "message_id": "<demo-D05@example.com>", "snippet": "대리님, W47 자재 소요 계획 공유드립니다.\n원단 A-102 소요량이 늘어서 입고 일정 확인 부탁드립니다.\n부자재 B-7은 재고 3일분 남았습니다.", "full_body": "대리님, W47 자재 소요 계획 공유드립니다.\n원단 A-102 소요량이 늘어서 입고 일정 확인 부탁드립니다.\n부자재 B-7은 재고 3일분 남았습니다.", "links": [], "category": "GOOD_TO_READ", "triage_type": "READ", "priority_score": 58, "reason": "다음 주 입고 일정과 맞춰볼 내부 공유 자료", "summary": "W47 라인별 자재 소요 계획입니다. 원단 A-102 소요량이 지난주보다 18% 늘었습니다.", "key_points": ["원단 A-102 소요량 +18%", "부자재 B-7 재고 3일분", "입고 지연 시 2라인 먼저 영향"], "action_required": "입항 지연 컨테이너와 겹치는 품목이 있는지 확인", "calendar_conflict": "", "reply_subject": "", "draft_polite": "", "draft_concise": "", "draft_schedule": "", "draft_internal": "", "is_forwarded": false, "reply_to_email": "ppic@company-demo.co.kr", "reply_to_name": "생산관리팀 이수민 대리", "forwarder_email": "ppic@company-demo.co.kr", "forwarder_name": "생산관리팀 이수민 대리", "reply_draft": ""}, {"id": "D06", "sender_name": "Freight Weekly", "sender_email": "news@freightweekly-demo.com", "subject": "[주간 리포트] 아시아-북미 운임 지수 동향", "date": "Mon, 09 Nov 2026 07:00:00 +0900", "message_id": "<demo-D06@example.com>", "snippet": "이번 주 아시아-북미 운임 지수는 전주 대비 2% 하락했습니다. 연말 성수기 할증이 예고되어 있습니다.", "full_body": "이번 주 아시아-북미 운임 지수는 전주 대비 2% 하락했습니다. 연말 성수기 할증이 예고되어 있습니다.", "links": [], "category": "SKIP", "triage_type": "IGNORE", "priority_score": 12, "reason": "정기 뉴스레터, 회신 필요 없음", "summary": "이번 주 아시아-북미 컨테이너 운임 지수는 지난주보다 2% 내렸습니다.", "key_points": ["운임 지수 전주 대비 -2%", "연말 성수기 할증 예고"], "action_required": "회신 필요 없음", "calendar_conflict": "", "reply_subject": "", "draft_polite": "", "draft_concise": "", "draft_schedule": "", "draft_internal": "", "is_forwarded": false, "reply_to_email": "news@freightweekly-demo.com", "reply_to_name": "Freight Weekly", "forwarder_email": "news@freightweekly-demo.com", "forwarder_name": "Freight Weekly", "reply_draft": ""}, {"id": "D07", "sender_name": "Office Supply Mall", "sender_email": "promo@officemall-demo.com", "subject": "11월 사무용품 최대 30% 할인", "date": "Mon, 09 Nov 2026 10:30:00 +0900", "message_id": "<demo-D07@example.com>", "snippet": "11월 한정 사무용품 최대 30% 할인 행사를 진행합니다.", "full_body": "11월 한정 사무용품 최대 30% 할인 행사를 진행합니다.", "links": [], "category": "SKIP", "triage_type": "IGNORE", "priority_score": 8, "reason": "광고 메일", "summary": "사무용품 할인 광고입니다.", "key_points": ["11월 한정 최대 30% 할인"], "action_required": "회신 필요 없음", "calendar_conflict": "", "reply_subject": "", "draft_polite": "", "draft_concise": "", "draft_schedule": "", "draft_internal": "", "is_forwarded": false, "reply_to_email": "promo@officemall-demo.com", "reply_to_name": "Office Supply Mall", "forwarder_email": "promo@officemall-demo.com", "forwarder_name": "Office Supply Mall", "reply_draft": ""}];
+        const STORAGE_KEY = "agy_agent_inbox_demo_v1";
+        let resolvedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        let currentFilter = "MUST_READ";
+        let searchQuery = "";
+        let selectedEmailId = null;
+        let currentTone = "polite";
+
+        function showToast(msg) {
+            const t = document.getElementById("toastBox");
+            t.innerText = msg;
+            t.style.display = "block";
+            setTimeout(() => { t.style.display = "none"; }, 2500);
+        }
+
+        function triggerLiveRefresh(btn) {
+            showToast("ℹ️ 포트폴리오 데모입니다. 실제 버전은 Gmail API로 메일을 받아와 AI가 다시 분류합니다.");
+        }
+
+        function saveResolvedState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(resolvedIds));
+            updateCountsAndProgress();
+        }
+
+        function getFilteredEmails() {
+            return EMAILS.filter(item => {
+                const isResolved = resolvedIds.includes(item.id);
+                if (currentFilter === "RESOLVED") {
+                    if (!isResolved) return false;
+                } else if (currentFilter !== "ALL") {
+                    if (item.category !== currentFilter) return false;
+                }
+                if (searchQuery.trim() !== "") {
+                    const q = searchQuery.toLowerCase();
+                    const hay = `${item.sender_name} ${item.sender_email} ${item.subject} ${item.summary}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+        }
+
+        function updateCountsAndProgress() {
+            const mustCnt = EMAILS.filter(e => e.category === "MUST_READ" && !resolvedIds.includes(e.id)).length;
+            const goodCnt = EMAILS.filter(e => e.category === "GOOD_TO_READ" && !resolvedIds.includes(e.id)).length;
+            const skipCnt = EMAILS.filter(e => e.category === "SKIP" && !resolvedIds.includes(e.id)).length;
+            const resCnt = EMAILS.filter(e => resolvedIds.includes(e.id)).length;
+
+            document.getElementById("cnt-MUST_READ").innerText = mustCnt;
+            document.getElementById("cnt-GOOD_TO_READ").innerText = goodCnt;
+            document.getElementById("cnt-SKIP").innerText = skipCnt;
+            document.getElementById("cnt-ALL").innerText = EMAILS.length;
+            document.getElementById("cnt-RESOLVED").innerText = resCnt;
+
+            const pct = EMAILS.length ? Math.round((resCnt / EMAILS.length) * 100) : 100;
+            document.getElementById("progressText").innerText = pct + "%";
+            document.getElementById("progressFill").style.width = pct + "%";
+        }
+
+        function setFilter(filterName) {
+            currentFilter = filterName;
+            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+            const btn = document.getElementById("nav-" + filterName);
+            if (btn) btn.classList.add("active");
+
+            const titles = {
+                "MUST_READ": "🔴 필독 · 결재 대기 큐",
+                "GOOD_TO_READ": "🟡 참고 · AI 뉴스레터 & 인사이트",
+                "SKIP": "⚪ 패스 · 프로모션 & 자동 필터링",
+                "ALL": "📬 전체 메일 트리아지 목록",
+                "RESOLVED": "✅ 결재 및 확인 완료된 메일"
+            };
+            document.getElementById("queueTitle").innerText = titles[filterName] || "메일 목록";
+
+            const list = getFilteredEmails();
+            selectedEmailId = list.length > 0 ? list[0].id : null;
+            renderQueueList();
+            renderDetailPane();
+        }
+
+        function handleSearch(val) {
+            searchQuery = val;
+            const list = getFilteredEmails();
+            selectedEmailId = list.length > 0 ? list[0].id : null;
+            renderQueueList();
+            renderDetailPane();
+        }
+
+        function selectEmail(id) {
+            selectedEmailId = id;
+            currentTone = "polite";
+            renderQueueList();
+            renderDetailPane();
+        }
+
+        function toggleResolve(id) {
+            const idx = resolvedIds.indexOf(id);
+            if (idx === -1) {
+                resolvedIds.push(id);
+                showToast("✅ 확인/결재 완료 처리되었습니다 (완료 보관함으로 이동)");
+            } else {
+                resolvedIds.splice(idx, 1);
+                showToast("↩️ 미결재 상태로 복구되었습니다.");
+            }
+            saveResolvedState();
+            renderQueueList();
+            renderDetailPane();
+        }
+
+        function markAllVisibleResolved() {
+            const list = getFilteredEmails();
+            list.forEach(item => {
+                if (!resolvedIds.includes(item.id)) resolvedIds.push(item.id);
+            });
+            saveResolvedState();
+            renderQueueList();
+            renderDetailPane();
+            showToast(`✅ ${list.length}건 결재 완료!`);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function renderQueueList() {
+            const container = document.getElementById("queueList");
+            const list = getFilteredEmails();
+            if (list.length === 0) {
+                container.innerHTML = `<div style="padding:36px 20px; text-align:center; color:#64748b; font-size:0.88rem;">이 큐에 표시할 메일이 없습니다 🎉</div>`;
+                return;
+            }
+
+            const catLabel = {
+                "MUST_READ": "🔴 필독",
+                "GOOD_TO_READ": "🟡 참고",
+                "SKIP": "⚪ 패스"
+            };
+
+            container.innerHTML = list.map(item => {
+                const isSel = item.id === selectedEmailId;
+                const isRes = resolvedIds.includes(item.id);
+                return `
+                <div class="queue-item ${isSel ? 'selected' : ''} ${isRes ? 'resolved' : ''}" onclick="selectEmail('${item.id}')">
+                    <div class="q-top">
+                        <div class="q-badges">
+                            <span class="triage-chip chip-${item.category}">${catLabel[item.category] || item.category}</span>
+                            <span class="sub-chip">${escapeHtml(item.triage_type || 'INFO')}</span>
+                            ${isRes ? '<span class="resolved-badge">✓ 완료</span>' : ''}
+                        </div>
+                        <span style="font-size:0.72rem; color:#64748b;">우선순위 ${item.priority_score || 50}</span>
+                    </div>
+                    <div class="q-sender">${escapeHtml(item.sender_name)} <span style="font-weight:400; color:#64748b; font-size:0.76rem;">&lt;${escapeHtml(item.sender_email)}&gt;</span></div>
+                    <div class="q-subject">${escapeHtml(item.subject)}</div>
+                    <div class="q-summary">${escapeHtml(item.summary)}</div>
+                </div>
+                `;
+            }).join("");
+        }
+
+        function switchTone(tone) {
+            currentTone = tone;
+            const item = EMAILS.find(e => e.id === selectedEmailId);
+            if (!item) return;
+            const map = {
+                "polite": item.draft_polite || item.reply_draft || "",
+                "concise": item.draft_concise || item.reply_draft || "",
+                "schedule": item.draft_schedule || item.reply_draft || "",
+                "internal": item.draft_internal || item.draft_polite || ""
+            };
+            const editor = document.getElementById("draftEditor");
+            if (editor) editor.value = map[tone];
+
+            const targetRecipient = (tone === "internal" && item.forwarder_email)
+                ? `${item.forwarder_name || ''} <${item.forwarder_email}>`
+                : `${item.reply_to_name || item.sender_name || ''} <${item.reply_to_email || item.sender_email}>`;
+            const recEl = document.getElementById("recipientDisplay");
+            if (recEl) recEl.innerText = targetRecipient;
+
+            document.querySelectorAll(".tone-pill").forEach(el => el.classList.remove("active"));
+            const activeBtn = document.getElementById("tone-" + tone);
+            if (activeBtn) activeBtn.classList.add("active");
+        }
+
+        function copyCurrentDraft() {
+            const editor = document.getElementById("draftEditor");
+            if (!editor) return;
+            navigator.clipboard.writeText(editor.value).then(() => {
+                showToast("📋 답장 초안이 클립보드에 복사되었습니다!");
+            });
+        }
+
+        function openGmailComposeForCurrent() {
+            const item = EMAILS.find(e => e.id === selectedEmailId);
+            if (!item) return;
+            const editor = document.getElementById("draftEditor");
+            const bodyText = editor ? editor.value : (item.draft_polite || "");
+            const toEmail = (currentTone === "internal" && item.forwarder_email)
+                ? item.forwarder_email
+                : (item.reply_to_email || item.sender_email);
+            const replySubj = item.reply_subject
+                ? item.reply_subject
+                : (item.subject.toLowerCase().startsWith("re:") ? item.subject : "[회신] " + item.subject);
+            const url = "https://mail.google.com/mail/?view=cm&fs=1"
+                + "&to=" + encodeURIComponent(toEmail)
+                + "&su=" + encodeURIComponent(replySubj)
+                + "&body=" + encodeURIComponent(bodyText);
+            window.open(url, "_blank");
+        }
+
+        function renderDetailPane() {
+            const pane = document.getElementById("detailPane");
+            const item = EMAILS.find(e => e.id === selectedEmailId);
+            if (!item) {
+                pane.innerHTML = `<div style="margin:auto; text-align:center; color:#64748b;">좌측 목록에서 메일을 선택하세요.</div>`;
+                return;
+            }
+
+            const isRes = resolvedIds.includes(item.id);
+            const keyPointsHtml = (item.key_points && item.key_points.length)
+                ? `<ul class="key-points-list">${item.key_points.map(kp => `<li>${escapeHtml(kp)}</li>`).join("")}</ul>`
+                : "";
+
+            const linksHtml = (item.links && item.links.length)
+                ? `<div class="links-bar">${item.links.map(lk => `<a class="ext-link" href="${escapeHtml(lk.url)}" target="_blank">🔗 ${escapeHtml(lk.domain)} 바로가기</a>`).join("")}</div>`
+                : "";
+
+            const showDraftStudio = item.category === "MUST_READ" || item.draft_polite;
+
+            pane.innerHTML = `
+                <div class="detail-header">
+                    <div class="detail-ActionBar">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="triage-chip chip-${item.category}">${item.category}</span>
+                            <span class="sub-chip">액션: ${escapeHtml(item.triage_type || 'REVIEW')}</span>
+                            <span style="font-size:0.8rem; color:#94a3b8;">분류 사유: ${escapeHtml(item.reason)}</span>
+                        </div>
+                        <div class="decision-btns">
+                            <button class="btn btn-approve" onclick="toggleResolve('${item.id}')">
+                                ${isRes ? '↩️ 미결재로 복원' : '✅ 확인 / 결재 완료 (E)'}
+                            </button>
+                            <button class="btn btn-gmail" onclick="openGmailComposeForCurrent()">
+                                🚀 지메일 답장창 열기 (R)
+                            </button>
+                        </div>
+                    </div>
+                    <h2 class="detail-subject">${escapeHtml(item.subject)}</h2>
+                    <div class="detail-meta">
+                        <span><strong>보낸사람:</strong> ${escapeHtml(item.sender_name)} &lt;${escapeHtml(item.sender_email)}&gt;</span>
+                        <span><strong>수신일시:</strong> ${escapeHtml(item.date)}</span>
+                    </div>
+                </div>
+
+                <div class="ai-brief-card">
+                    <div class="ai-brief-title">
+                        <span>🧠 Executive AI 정밀 브리핑</span>
+                        <span>우선순위 점수: ${item.priority_score || 80} / 100</span>
+                    </div>
+                    <div class="ai-summary-text">${escapeHtml(item.summary)}</div>
+                    ${keyPointsHtml}
+                    ${item.action_required ? `<div class="action-callout">⚡ 권장 조치: ${escapeHtml(item.action_required)}</div>` : ''}
+                    ${item.calendar_conflict ? `<div class="action-callout" style="margin-top:8px; border-left-color:#3b82f6; color:#93c5fd; background:rgba(59,130,246,0.12);">📅 캘린더 일정 대조: ${escapeHtml(item.calendar_conflict)}</div>` : ''}
+                    ${linksHtml}
+                </div>
+
+                ${showDraftStudio ? `
+                <div class="hitl-studio">
+                    <div class="studio-top">
+                        <div>
+                            <span class="studio-label">✍️ 비즈니스 매뉴얼 표준 답장 스튜디오</span>
+                            <div style="font-size:0.78rem; color:#94a3b8; margin-top:4px;">
+                                📬 수신인 자동 지정: <strong id="recipientDisplay" style="color:#e2e8f0;">${escapeHtml(item.reply_to_name || item.sender_name)} &lt;${escapeHtml(item.reply_to_email || item.sender_email)}&gt;</strong>
+                                ${item.is_forwarded ? `<span style="color:#fbbf24; margin-left:6px;">(FW 전달 메일 감지됨)</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="tone-pills">
+                            <button class="tone-pill active" id="tone-polite" onclick="switchTone('polite')">■ 공식 표준형</button>
+                            <button class="tone-pill" id="tone-concise" onclick="switchTone('concise')">⚡ 담백 4줄형</button>
+                            <button class="tone-pill" id="tone-schedule" onclick="switchTone('schedule')">📅 일정 조율(후보제시)</button>
+                            ${item.is_forwarded && item.draft_internal ? `<button class="tone-pill" id="tone-internal" onclick="switchTone('internal')">🏢 전달자(${escapeHtml(item.forwarder_name)}) 내부회신</button>` : ''}
+                        </div>
+                    </div>
+                    <textarea id="draftEditor" class="draft-editor" style="min-height:195px;">${escapeHtml(item.draft_polite || item.reply_draft || '')}</textarea>
+                    <div class="studio-footer">
+                        <span style="font-size:0.78rem; color:#64748b;">💡 답장 제목: <strong>${escapeHtml(item.reply_subject || ('[회신] ' + item.subject))}</strong></span>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-secondary" onclick="copyCurrentDraft()">📋 초안 복사 (C)</button>
+                            <button class="btn btn-gmail" onclick="openGmailComposeForCurrent()">🚀 이 초안으로 지메일 답장 열기 (R)</button>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div>
+                    <div class="tab-bar">
+                        <span class="tab-btn active">📄 수신 이메일 실제 원문 (Original Message Body)</span>
+                    </div>
+                    <div class="original-box">${escapeHtml(item.full_body || item.snippet)}</div>
+                </div>
+            `;
+        }
+
+        document.addEventListener("keydown", (e) => {
+            const tag = (e.target.tagName || "").toLowerCase();
+            if (tag === "input" || tag === "textarea") {
+                if (e.key === "Escape") e.target.blur();
+                return;
+            }
+            if (e.key === "/") {
+                e.preventDefault();
+                document.getElementById("searchInput").focus();
+                return;
+            }
+            const list = getFilteredEmails();
+            if (!list.length) return;
+            const curIdx = list.findIndex(x => x.id === selectedEmailId);
+
+            if (e.key === "j" || e.key === "J") {
+                const nextIdx = Math.min(list.length - 1, curIdx + 1);
+                selectEmail(list[nextIdx].id);
+            } else if (e.key === "k" || e.key === "K") {
+                const prevIdx = Math.max(0, curIdx - 1);
+                selectEmail(list[prevIdx].id);
+            } else if (e.key === "e" || e.key === "E") {
+                if (selectedEmailId) toggleResolve(selectedEmailId);
+            } else if (e.key === "r" || e.key === "R") {
+                openGmailComposeForCurrent();
+            } else if (e.key === "c" || e.key === "C") {
+                copyCurrentDraft();
+            }
+        });
+
+        function toggleBriefingModal() {
+            const m = document.getElementById("briefingModal");
+            if (!m) return;
+            m.style.display = (m.style.display === "none" || !m.style.display) ? "flex" : "none";
+        }
+
+        updateCountsAndProgress();
+        setFilter("MUST_READ");
+    </script>
+
+    <div id="briefingModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:14px; width:940px; max-width:95vw; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.6);">
+            <div style="padding:16px 20px; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.05rem; font-weight:800; color:#f8fafc;">📋 아침 10줄 메일 브리핑 & 분류 규칙</span>
+                    <span style="font-size:0.75rem; background:#1e293b; color:#94a3b8; padding:3px 8px; border-radius:999px;">briefing.md & mail-rules.md</span>
+                </div>
+                <button onclick="toggleBriefingModal()" style="background:transparent; border:none; color:#94a3b8; font-size:1.3rem; cursor:pointer;">✕</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+                <div style="background:#111827; border:1px solid #1e293b; border-radius:10px; padding:16px; overflow-y:auto;">
+                    <div style="font-size:0.86rem; font-weight:700; color:#38bdf8; margin-bottom:10px; border-bottom:1px solid #1e293b; padding-bottom:6px;">📄 briefing.md (10줄 브리핑)</div>
+                    <pre style="white-space:pre-wrap; font-family:Consolas, monospace; font-size:0.8rem; color:#e2e8f0; line-height:1.6;">## 🔴 오늘 답할 것
+- [Ocean Line Korea] 부산 입항 5일 지연, 대체 항차 전환 여부 | 기한: 오늘 15시 | 내 동작: 회신
+- [재무팀] 수입대금 USD 15,000 송금 품의 | 기한: 오늘 17시 | 내 동작: 결재
+- [PT Sinar Logistics] 단가 정정 송장 재대조 | 기한: 오늘 | 내 동작: 회신
+
+## 🟡 기한 있는 것
+- [관세사무소] 원산지 증명서 전자 제출 의무화 | 기한: 11월 15일 | 내 동작: 공급사 공지
+
+## 🟢 읽어 두면 되는 것
+- [생산관리팀] W47 라인별 자재 소요 계획 | 기한: 해당없음 | 내 동작: 입고 일정 대조
+
+## ⚪ 안 봐도 되는 것
+- [Freight Weekly] 주간 운임 지수 리포트 | 기한: 해당없음 | 내 동작: 단순열람
+- [Office Supply Mall] 사무용품 할인 광고 | 기한: 해당없음 | 내 동작: 단순열람
+
+모든 줄이 수신 메일 1건과 1:1로 연결됨을 확인했습니다.</pre>
+                </div>
+                <div style="background:#111827; border:1px solid #1e293b; border-radius:10px; padding:16px; overflow-y:auto;">
+                    <div style="font-size:0.86rem; font-weight:700; color:#a78bfa; margin-bottom:10px; border-bottom:1px solid #1e293b; padding-bottom:6px;">⚙️ mail-rules.md (4대 칸 분류 규칙)</div>
+                    <pre style="white-space:pre-wrap; font-family:Consolas, monospace; font-size:0.8rem; color:#e2e8f0; line-height:1.6;">조건: '보낸사람이 선사이고 제목에 지연·긴급이 있으면' -&gt; [오늘 답할 것]
+조건: '보낸사람이 재무팀이고 제목에 결재요청이 있으면' -&gt; [오늘 답할 것]
+조건: '보낸사람이 공급사이고 제목에 정정이 있으면' -&gt; [오늘 답할 것]
+조건: '보낸사람이 관세사이고 제목에 안내가 있으면' -&gt; [기한 있는 것]
+조건: '보낸사람이 사내 팀이고 제목에 공유가 있으면' -&gt; [읽어 두면 되는 것]
+조건: '뉴스레터·리포트이면' -&gt; [안 봐도 되는 것]
+조건: '할인·프로모션이면' -&gt; [안 봐도 되는 것]
+
+빠진 메일: 없음. 같은 규칙으로 다시 돌려도 같은 분류가 나오는지 확인했습니다.</pre>
+                </div>
+            </div>
+            <div style="padding:12px 20px; border-top:1px solid #1e293b; background:#0b1120; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.76rem; color:#64748b;">가상 업무 메일 7건 기준 예시</span>
+                <button onclick="toggleBriefingModal()" class="btn btn-secondary">닫기 (Esc 또는 B)</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

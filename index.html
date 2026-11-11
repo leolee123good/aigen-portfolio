@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>이상승 포트폴리오 데모 | SK AIGEN 1기</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif; background: #f8fafc; color: #1e293b; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 56px; }
+    .head { margin-bottom: 28px; }
+    .head .who { font-size: 13px; color: #64748b; font-weight: 600; }
+    .head h1 { font-size: 24px; margin-top: 6px; color: #0f172a; }
+    .head p { margin-top: 8px; font-size: 14px; color: #475569; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
+    .card:hover { box-shadow: 0 10px 28px rgba(15, 23, 42, .12); transform: translateY(-2px); }
+    .card img { width: 100%; display: block; border-bottom: 1px solid #e2e8f0; }
+    .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .tag { font-size: 12px; font-weight: 700; color: #005691; }
+    .body h2 { font-size: 17px; color: #0f172a; }
+    .body p { font-size: 13.5px; color: #475569; line-height: 1.6; flex: 1; }
+    .try { font-size: 13px; color: #334155; background: #f1f5f9; border-radius: 8px; padding: 10px 12px; line-height: 1.6; }
+    .btn { margin-top: 6px; align-self: flex-start; background: #005691; color: #fff; font-size: 14px; font-weight: 700; padding: 10px 16px; border-radius: 8px; }
+    .note { margin-top: 24px; font-size: 12.5px; color: #64748b; line-height: 1.6; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div class="who">SK AIGEN 1기 지원자 이상승 · 포트폴리오 실행 데모</div>
+      <h1>직접 만든 업무 자동화 프로그램 2개</h1>
+      <p>포트폴리오 PDF에 넣은 화면과 같은 프로그램입니다. 설치나 로그인 없이 바로 눌러볼 수 있습니다.</p>
+    </div>
+
+    <div class="grid">
+      <a class="card" href="./trade/">
+        <img src="./trade.png" alt="TradeReconcile AI 화면" />
+        <div class="body">
+          <div class="tag">PROJECT 01</div>
+          <h2>무역 서류(PO·CI·PL·BL) 4자 대조 프로그램</h2>
+          <p>발주서·송장·포장명세서·선하증권의 수량, 단가, 중량, 인코텀즈를 서로 맞춰 보고, 틀린 곳이 있으면 담당자 확인 전까지 결재를 멈춥니다.</p>
+          <div class="try">이렇게 써 보세요: 왼쪽 메뉴 <b>4-Way 대사 뷰어</b> → 위쪽 시나리오(단가 불일치, 인코텀즈 충돌 등)를 바꿔 가며 4개 서류에서 어디가 틀렸는지 확인</div>
+          <span class="btn">프로그램 열기 →</span>
+        </div>
+      </a>
+
+      <a class="card" href="./email-briefing/">
+        <img src="./email.png" alt="EmailBriefing AI 화면" />
+        <div class="body">
+          <div class="tag">PROJECT 02</div>
+          <h2>업무 메일 분류·요약 프로그램</h2>
+          <p>받은 메일을 '오늘 답할 것 / 참고 / 패스'로 나누고, 핵심 요약과 답장 초안을 만들어 줍니다. 아침에 10줄 브리핑으로 하루 할 일을 정리합니다.</p>
+          <div class="try">이렇게 써 보세요: 왼쪽 큐를 바꿔 보고, 메일을 눌러 요약과 답장 초안(공식형·담백형·일정 조율형)을 확인. 위쪽 <b>아침 10줄 브리핑</b> 버튼도 눌러 보세요.</div>
+          <span class="btn">프로그램 열기 →</span>
+        </div>
+      </a>
+    </div>
+
+    <p class="note">※ 두 프로그램 모두 개인정보 보호를 위해 직접 만든 가상 데이터로 돌아갑니다. 실제 버전은 FastAPI 백엔드와 Gmail API에 연결해 씁니다.</p>
+  </div>
+</body>
+</html>
